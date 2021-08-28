@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { CacheModule, Module } from '@nestjs/common';
 import { AuthResolver } from './auth.resolver';
 import { SessionModule } from 'src/sessions/session.module';
 import { JwtModule } from '@nestjs/jwt';
@@ -8,8 +8,8 @@ import { User, UserSchema } from 'src/users/users.schema';
 import { AuthService } from './auth.service';
 
 const jwtRegister = {
-  secret: 'KEY',
-  signOptions: { expiresIn: '24h' },
+  secret: process.env.JWT_KEY,
+  signOptions: { expiresIn: process.env.JWT_EXPIRES_TIME },
 };
 
 @Module({
@@ -18,6 +18,7 @@ const jwtRegister = {
       { name: Session.name, schema: SessionSchema },
       { name: User.name, schema: UserSchema },
     ]),
+    CacheModule.register({ ttl: 10 }),
     JwtModule.register(jwtRegister),
     SessionModule,
   ],

@@ -1,4 +1,10 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import {
+  CACHE_MANAGER,
+  Inject,
+  Injectable,
+  UnauthorizedException,
+} from '@nestjs/common';
+import { Cache } from 'cache-manager';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { SignInUserInput } from 'src/auth/dto/sign-in.input';
@@ -13,6 +19,7 @@ export class AuthService {
   constructor(
     @InjectModel(Session.name) private sessionModel: Model<SessionDocument>,
     @InjectModel(User.name) private userModel: Model<UserDocument>,
+    @Inject(CACHE_MANAGER) private cacheManager: Cache,
     private readonly jwtService: JwtService,
   ) {}
 
@@ -27,11 +34,14 @@ export class AuthService {
       throw new UnauthorizedException('Invalid email or password');
     }
 
-    const token = this.jwtService.sign({ ...user });
+    const key = new Date().getTime().toString();
+    const token = this.jwtService.sign({ ...user, key });
+    const refreshToken = this.jwtService.sign({ token }, { expiresIn: 150 });
+    this.cacheManager.set(key, { iSrevoked: false });
 
     return this.sessionModel.create({
       token,
-      refreshToken: token,
+      refreshToken,
       ip: req.ip,
       userAgent: req.headers['user-agent'],
       expiredAt: new Date(),

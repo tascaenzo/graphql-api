@@ -4,12 +4,12 @@ import { GraphQLModule } from '@nestjs/graphql';
 import { UsersModule } from './users/users.module';
 import { AuthModule } from './auth/auth.module';
 import { SessionModule } from './sessions/session.module';
+import { ConfigModule } from '@nestjs/config';
 
 @Module({
   imports: [
-    MongooseModule.forRoot('mongodb://localhost:27017/graphql', {
-      useCreateIndex: true,
-    }),
+    ConfigModule.forRoot({ isGlobal: true }),
+    MongooseModule.forRoot(process.env.MONGO_URI, { useCreateIndex: true }),
     GraphQLModule.forRoot({
       autoSchemaFile: true,
       context: ({ req }) => ({ req }),

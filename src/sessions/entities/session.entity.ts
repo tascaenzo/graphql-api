@@ -6,6 +6,9 @@ export class Session {
   @Field(() => String, { description: 'Token' })
   token: string;
 
+  @Field(() => String, { description: 'Refresh Token' })
+  refreshToken: string;
+
   @Field(() => Number, { description: 'Session refreshed number' })
   refreshNumber: number;
 
