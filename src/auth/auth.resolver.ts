@@ -22,4 +22,12 @@ export class AuthResolver {
   ): Promise<SessionDocument> {
     return this.authService.signOut(token);
   }
+
+  @Mutation(() => Session)
+  refresh(
+    @Args('token', { type: () => String }) token: string,
+    @Args('refreshToken', { type: () => String }) refreshToken: string,
+  ): Promise<SessionDocument> {
+    return this.authService.refresh(refreshToken, token);
+  }
 }

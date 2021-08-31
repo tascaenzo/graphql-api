@@ -6,20 +6,20 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { Session, SessionSchema } from 'src/sessions/session.schema';
 import { User, UserSchema } from 'src/users/users.schema';
 import { AuthService } from './auth.service';
-
-const jwtRegister = {
-  secret: process.env.JWT_KEY,
-  signOptions: { expiresIn: process.env.JWT_EXPIRES_TIME },
-};
+import { ConfigModule } from '@nestjs/config';
 
 @Module({
   imports: [
+    ConfigModule.forRoot({ isGlobal: true }),
     MongooseModule.forFeature([
       { name: Session.name, schema: SessionSchema },
       { name: User.name, schema: UserSchema },
     ]),
-    CacheModule.register({ ttl: 10 }),
-    JwtModule.register(jwtRegister),
+    CacheModule.register({ ttl: parseInt(process.env.JWT_CACHE_TTL) }),
+    JwtModule.register({
+      secret: process.env.JWT_KEY,
+      signOptions: { expiresIn: process.env.JWT_EXPIRES_TIME },
+    }),
     SessionModule,
   ],
   providers: [AuthResolver, AuthService],
