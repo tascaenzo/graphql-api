@@ -1,4 +1,5 @@
 import { ObjectType, Field, ID } from '@nestjs/graphql';
+import Role from '../user-role';
 
 @ObjectType()
 export class User {
@@ -16,6 +17,9 @@ export class User {
 
   @Field(() => String, { description: 'isBanned' })
   isBanned: boolean;
+
+  @Field(() => Date, { description: 'Role' })
+  role: [Role];
 
   @Field(() => Date, { description: 'Created Data' })
   createdAt: Date;

@@ -24,7 +24,7 @@ export class Session {
   @Field(() => Date, { description: 'Refreshed data', nullable: true })
   refreshedAt: Date;
 
-  @Field(() => String, { description: 'Token expired date' })
+  @Field(() => Date, { description: 'Token expired date' })
   expiredAt: Date;
 
   @Field(() => User, { description: 'User' })

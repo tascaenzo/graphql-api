@@ -1,10 +1,5 @@
-import {
-  CACHE_MANAGER,
-  Inject,
-  Injectable,
-  NotFoundException,
-  UnauthorizedException,
-} from '@nestjs/common';
+import { CACHE_MANAGER, Inject, Injectable } from '@nestjs/common';
+import { NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { Cache } from 'cache-manager';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
@@ -14,6 +9,7 @@ import { SessionDocument, Session } from '../sessions/session.schema';
 import { JwtService } from '@nestjs/jwt';
 import { Request } from 'express';
 import * as bcrypt from 'bcrypt';
+import AuthInterface from './dto/auth.interface';
 
 @Injectable()
 export class AuthService {
@@ -36,19 +32,29 @@ export class AuthService {
     }
 
     const key = new Date().getTime().toString();
-    const token = this.jwtService.sign({ email: user.email, id: user.id, key });
+    const token = this.jwtService.sign({ role: user.role, id: user.id, key });
+    const tokenDecode = this.jwtService.decode(token);
     const refreshToken = this.jwtService.sign(
       { token },
       { expiresIn: process.env.JWT_REFRESH_EXPIRES_TIME },
     );
-    this.cacheManager.set(key, { iSrevoked: false });
+    this.cacheManager.set(
+      key,
+      {
+        iSrevoked: false,
+        role: user.role,
+        user: user.id,
+      },
+      { ttl: parseInt(process.env.JWT_CACHE_TTL) },
+    );
 
     return this.sessionModel.create({
       token,
       refreshToken,
       ip: req.ip,
       userAgent: req.headers['user-agent'],
-      expiredAt: new Date(),
+      expiredAt: new Date(tokenDecode['exp'] * 1000),
+      user: user._id,
     });
   }
 
@@ -86,14 +92,37 @@ export class AuthService {
     );
 
     this.cacheManager.set(key, { iSrevoked: false });
+    const newTokenDecode = this.jwtService.decode(newToken);
+
     return await this.sessionModel.findOneAndUpdate(
       { _id: session._id },
       {
         token: newToken,
         refreshToken: newRefreshToken,
         refreshNumber: session.refreshNumber + 1,
+        expiredAt: new Date(newTokenDecode['exp'] * 1000),
         refreshedAt: new Date(),
       },
     );
+  }
+
+  async verify(token: string): Promise<AuthInterface> {
+    const key = this.jwtService.verify(token)['key'];
+    const auth: AuthInterface = await this.cacheManager.get(key);
+    if (auth === undefined) {
+      const session = await this.sessionModel
+        .findOne({ token })
+        .populate('user');
+      if (session === null || session.deletedAt !== null) {
+        return null;
+      }
+
+      this.cacheManager.set(key, {
+        iSrevoked: false,
+        role: session.user.role,
+        user: session.user.id,
+      });
+    }
+    return auth;
   }
 }
