@@ -7,6 +7,7 @@ import { Session, SessionSchema } from 'src/sessions/session.schema';
 import { User, UserSchema } from 'src/users/users.schema';
 import { AuthService } from './auth.service';
 import { ConfigModule } from '@nestjs/config';
+import { UsersService } from 'src/users/users.service';
 
 @Global()
 @Module({
@@ -23,7 +24,7 @@ import { ConfigModule } from '@nestjs/config';
     }),
     SessionModule,
   ],
-  providers: [AuthResolver, AuthService],
+  providers: [AuthResolver, AuthService, UsersService],
   exports: [AuthService],
 })
 export class AuthModule {}

@@ -11,6 +11,10 @@ import { ConfigModule } from '@nestjs/config';
     ConfigModule.forRoot({ isGlobal: true }),
     MongooseModule.forRoot(process.env.MONGO_URI, { useCreateIndex: true }),
     GraphQLModule.forRoot({
+      cors: {
+        credentials: true,
+        origin: true,
+      },
       autoSchemaFile: true,
       context: ({ req }) => ({ req }),
     }),
