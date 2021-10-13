@@ -5,6 +5,7 @@ import {
   Context,
   ResolveField,
   Parent,
+  Query,
 } from '@nestjs/graphql';
 import { Session } from 'src/sessions/entities/session.entity';
 import { SessionDocument } from 'src/sessions/session.schema';
@@ -41,6 +42,13 @@ export class AuthResolver {
     @Args('refreshToken', { type: () => String }) refreshToken: string,
   ): Promise<SessionDocument> {
     return this.authService.refresh(refreshToken, token);
+  }
+
+  @Query(() => Session, { name: 'getSessionByToken' })
+  getSessionByToken(
+    @Args('token', { type: () => String }) token: string,
+  ): Promise<SessionDocument> {
+    return this.authService.getSessionByToken(token);
   }
 
   @ResolveField(() => User)

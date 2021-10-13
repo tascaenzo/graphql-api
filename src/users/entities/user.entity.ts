@@ -18,7 +18,7 @@ export class User {
   @Field(() => String, { description: 'isBanned' })
   isBanned: boolean;
 
-  @Field(() => Date, { description: 'Role' })
+  @Field(() => [String], { description: 'Role' })
   role: [Role];
 
   @Field(() => Date, { description: 'Created Data' })

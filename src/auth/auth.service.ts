@@ -125,4 +125,12 @@ export class AuthService {
     }
     return auth;
   }
+
+  async getSessionByToken(token: string): Promise<SessionDocument> {
+    const auth = this.verify(token);
+    if (auth === null) {
+      throw new UnauthorizedException('Invalid token or expired');
+    }
+    return this.sessionModel.findOne({ token });
+  }
 }
